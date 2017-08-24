@@ -4,15 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "http-server ."
+    "start": "http-server .",
+    "bundle": "browserify index.js -o bundle.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "browserify": "^14.4.0",
     "http-server": "^0.10.0"
   },
   "dependencies": {
-    "aws-iot-device-sdk": "^2.0.1"
+    "aws-iot-device-sdk": "^2.0.1",
+    "aws-sdk": "^2.102.0"
   }
 }
