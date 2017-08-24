@@ -26,6 +26,16 @@ Resources:
           Condition:
             StringEquals:
               "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+      Policies: 
+        - PolicyName: "subscribe-to-topic"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action: 
+                - "iot:Connect"
+                - "iot:Subscribe"
+                Resource: "*"
   RoleAttachments:
     # Warning! this resource "cannot be updated"
     Type: "AWS::Cognito::IdentityPoolRoleAttachment"
