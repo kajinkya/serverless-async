@@ -6,83 +6,68 @@ var iotHost = 'a1vg8tn90m1i7s.iot.us-east-1.amazonaws.com';
 
 const awsIot = require('aws-iot-device-sdk');
 const AWS = require('AWS-sdk');
+AWS.config.region = 'us-east-1';
+
 
 /*
 I'm bundling everything with browserify because I don't want to figure out 
 how to include the aws iot sdk without it.
 */
 
-function generateTemporaryAWSCredentials(tokenResponse) {
-    console.log('Attempting to obtain Cognito', tokenResponse);
+//see https://github.com/aws/aws-iot-device-sdk-js/blob/master/examples/browser/temperature-monitor/index.js
+//also see https://github.com/zanon-io/serverless-notifications/blob/master/iot/index.js
 
-    AWS.config.region = 'us-east-1';
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: IDENTITY_POOL_ID,
-        Logins: {
-            'accounts.google.com': tokenResponse.id_token
-        }
-    });
-
-    return new Promise((resolve, reject) => {
-        AWS.config.credentials.get(function (err) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(AWS.config.credentials);
-            }
-        });
-    });
-}
-
-function createIoTDevice(awsCreds) {
-    let device = awsIot.device({
+function setupIOTDevice(creds) {
+    let options = {
         region: 'us-east-1',
         protocol: 'wss',
-        host: iotHost,
-        clientId: 'my-client-id',
-        accessKeyId: awsCreds.accessKeyId,
-        secretKey: awsCreds.secretAccessKey,
-        sessionToken: awsCreds.sessionToken
-    });
-    console.log('created IOT device ', device);
-    global.iotDevice = device;
-    return device;
-}
+        accessKeyId: creds.accessKeyId,
+        secretKey: creds.secretAccessKey,
+        sessionToken: creds.sessionToken,
+        port: 443,
+        host: 'a1vg8tn90m1i7s.iot.us-east-1.amazonaws.com'
+    };
+    console.log('setting up IOT with ', options);
+    let iotDevice = awsIot.device(options);
 
-function onMessage(topic, message) {
-    console.log('got message ', topic, message);
-}
-
-function setupSubscriptions(iotDevice) {
     iotDevice.on('connect', function(){
         console.log('connected');
-        iotDevice.on('message', onMessage);
         let userId = global.googleUser.getBasicProfile().getId();
         let topicName = `/users/${userId}`;
         iotDevice.subscribe(topicName);
         console.log('subscribed to ', topicName);
     });
+    
+    iotDevice.on('message', function(topic, message) {
+        console.log('got message ', topic, message);
+    });
+
+    iotDevice.on('close', function() {
+        console.log('closed');
+    });
+
+    global.iotDevice = iotDevice;
 }
 
+//this is called by the google auth client
 global.onSignIn = function onSignIn(googleUser) {
     global.googleUser = googleUser;
-    var profile = googleUser.getBasicProfile();
-    console.log('signed into google ', profile);
-    generateTemporaryAWSCredentials(googleUser.getAuthResponse())
-        .then(logger('creds '))
-        .then(createIoTDevice)
-        .then(logger('device '))
-        .then(setupSubscriptions)
-        .catch(function(err) {
-            console.error(err);
-        });
+    console.log('signed into google ', googleUser.getBasicProfile());
+
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: IDENTITY_POOL_ID,
+        Logins: {
+            'accounts.google.com': googleUser.getAuthResponse().id_token
+        }
+    });
+
+    AWS.config.credentials.get(function (err, data) {
+        if (err) {
+            console.error('error getting creds', err);
+        } else {
+            let creds = global.creds = AWS.config.credentials;
+            console.log('creds gotten ', creds);
+            setupIOTDevice(creds);
+        }
+    });
 };
-
-//functio that returns logger functions
-function logger(message) {
-    return function(value) {
-        console.log(message,value);
-        return value;
-    }
-}
-
