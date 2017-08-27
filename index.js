@@ -16,7 +16,6 @@ how to include the aws iot sdk without it.
 
 //see https://github.com/aws/aws-iot-device-sdk-js/blob/master/examples/browser/temperature-monitor/index.js
 //also see https://github.com/zanon-io/serverless-notifications/blob/master/iot/index.js
-
 function setupIOTDevice(creds) {
     let options = {
         region: 'us-east-1',
@@ -24,35 +23,55 @@ function setupIOTDevice(creds) {
         accessKeyId: creds.accessKeyId,
         secretKey: creds.secretAccessKey,
         sessionToken: creds.sessionToken,
+        expireTime: creds.expireTime,
         port: 443,
         host: 'a1vg8tn90m1i7s.iot.us-east-1.amazonaws.com'
     };
     console.log('setting up IOT with ', options);
-    let iotDevice = awsIot.device(options);
+    let client = awsIot.device(options);
 
-    iotDevice.on('connect', function(){
+    client.on('connect', () => {
         console.log('connected');
-        let userId = global.googleUser.getBasicProfile().getId();
-        let topicName = `/users/${userId}`;
-        iotDevice.subscribe(topicName);
-        console.log('subscribed to ', topicName);
+        let topicName = getTopicName();;
+        client.subscribe(topicName);
+        console.log("subscribed to: ", topicName);
     });
-    
-    iotDevice.on('message', function(topic, message) {
-        console.log('got message ', topic, message);
-    });
-
-    iotDevice.on('close', function() {
+    client.on('message', (topic, buffer) => {
+        let messasge = JSON.parse(buffer.toString());
+        console.log('message', topic, messasge);
+    })          
+    client.on('error', (err) => {
+        console.log('error', err);
+    })
+    client.on('reconnect', () => {
+        console.log('reconnect');
+    })
+    client.on('offline', () => {
+        console.log('offline');
+    })
+    client.on('close', () => {
         console.log('closed');
-    });
+    })
 
-    global.iotDevice = iotDevice;
+    global.iotDevice = client;
+}
+
+function getTopicName() {
+    return "users/" + global.googleUser.getBasicProfile().getId();
+}
+
+function attachPolicyToPrincipal(creds) {
+    let iot = new AWS.Iot();
+    return iot.attachPrincipalPolicy({
+        policyName: 'allowAllPolicy',
+        principal: creds.identityId
+    }).promise();
 }
 
 //this is called by the google auth client
 global.onSignIn = function onSignIn(googleUser) {
     global.googleUser = googleUser;
-    console.log('signed into google ', googleUser.getBasicProfile());
+    console.log('signed into google: ', googleUser.getBasicProfile());
 
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: IDENTITY_POOL_ID,

@@ -53,11 +53,20 @@ Resources:
               Value: sourceallies.com
               Claim: hd
               RoleARN: !GetAtt FederatedUserRole.Arn
-  #Represents a "Thing that we can put topics under"
-  BrowserThing: 
-    Type: "AWS::IoT::Thing"
-    Properties: {}
-
+  IoTPolicy:
+    Type: "AWS::IoT::Policy"
+    Properties:
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Action: "iot:*"
+          Resource: !Join [':',
+            - "arn:aws:iot"
+            - !Ref: "AWS::Region"
+            - !Ref: "AWS::AccountId"
+            - "topic/${accounts.google.com:sub}"
+          ]
 Outputs:
   GoogleClientId:
     Description: OAuth Client ID to use when obtaining tokens
@@ -65,6 +74,7 @@ Outputs:
   IdentityPoolId:
     Description: ID of the Cognito Identity Pool that should be used to login
     Value: !Ref IdentityPool
-  BrowserThingId:
-    Description: Ref to the BrowserIOT Thing
-    Value: !Ref BrowserThing
+  IoTPolicy:
+    Description: Name of the IoT Policy
+    Value: !Ref IoTPolicy
+  

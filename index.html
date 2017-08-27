@@ -15,53 +15,7 @@
 
     <div class="g-signin2" data-onsuccess="onSignIn"></div>
 
-    <script>
-        /*
-        var clientId = document.querySelector('meta[name=google-signin-client_id]').content;
-        var IDENTITY_POOL_ID = 'us-east-1:cec22800-4afc-4b52-8970-59dffb32da2c';
-
-        var data = {
-            googleAuthResponse: null,
-            awsCredentials: null
-        };
-
-        function generateTemporaryAWSCredentials(tokenResponse) {
-            console.log('Attempting to obtain Cognito', tokenResponse);
-
-            AWS.config.region = 'us-east-1';
-            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: IDENTITY_POOL_ID,
-                Logins: {
-                    'accounts.google.com': tokenResponse.id_token
-                }
-            });
-
-            return new Promise((resolve, reject) => {
-                AWS.config.credentials.get(function (err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(AWS.config.credentials);
-                    }
-                });
-            });
-        }
-
-        function onSignIn(googleUser) {
-            data.googleAuthResponse = googleUser.getAuthResponse();
-            var profile = googleUser.getBasicProfile();
-            console.log('signed into google ', profile);
-            generateTemporaryAWSCredentials(data.googleAuthResponse)
-                .then(function(creds) {
-                    console.log(creds);
-                    data.awsCredentials = creds;
-                    return creds;
-                });
-
-
-        }
-        */
-    </script>
+    <div class="g-signout2"></div>
 </body>
 
 </html>

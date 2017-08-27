@@ -10,7 +10,7 @@ const creds = {
 let client = awsIot.device({
     region: 'us-east-1',
     protocol: 'wss',
-    accessKeyId: creds.accessKey,
+    accessKeyId: creds.accessKeyId,
     secretKey: creds.secretAccessKey,
     sessionToken: creds.sessionToken,
     port: 443,

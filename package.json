@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "aws-iot-device-sdk": "^2.0.1",
-    "aws-sdk": "^2.102.0"
+    "aws-mqtt": "^0.2.2",
+    "aws-sdk": "^2.103.0"
   }
 }
