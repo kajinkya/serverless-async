@@ -57,7 +57,8 @@ function setupIOTDevice(creds) {
 }
 
 function getTopicName() {
-    return "users/" + global.googleUser.getBasicProfile().getId();
+    //return "users/" + global.googleUser.getBasicProfile().getId();
+    return "users/" + AWS.config.credentials.identityId;
 }
 
 function attachPolicyToPrincipal(creds) {
